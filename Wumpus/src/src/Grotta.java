@@ -24,4 +24,5 @@ public class Grotta {
 		if(vTunnels[stanza1*3]==stanza2||vTunnels[stanza1*3+1]==stanza2||vTunnels[stanza1*3+2]==stanza2) return 1;
 		return 0;
 	}
+	
 }
