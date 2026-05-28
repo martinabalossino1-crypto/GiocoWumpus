@@ -30,14 +30,39 @@ public class Main {
 		while(ripeti==1) {
 			while(partita.getFinita()==0) {
 				System.out.println(partita.toString());
-				int passo;
-				do {
-					System.out.println("PROSSIMO PASSO: ");
-					passo=sc.nextInt();
-				} while(passo!=partita.grotta.getTunnel()[partita.giocatore.getStanza()*3]
-						&&passo!=partita.grotta.getTunnel()[partita.giocatore.getStanza()*3+1]
-								&&passo!=partita.grotta.getTunnel()[partita.giocatore.getStanza()*3+2]);
+				partita.ostacoliVicini();
+				int scelta;
+				System.out.println("COSA VUOI FARE?\n1 - AVANZA\n2 - SCOCCA UNA FRECCIA");
+				scelta=sc.nextInt();
+				int distanza=0;
+				if(scelta==2) {
+					do {
+						System.out.println("A QUALE DISTANZA VUOI SCOCCARE LA FRECCIA?");
+						distanza=sc.nextInt();
+						if(distanza>5) System.out.println("LA DISTANZA ESSERE COMPRESA TRA 1 E 5");
+					}
+					while(distanza<1||distanza>5);
+					partita.scoccaFreccia(distanza);
+				}
+				else {
+					int passo=-1;
+					partita.getGrotta();
+					do {
+						if(scelta==1) {
+							System.out.println("INSERIRE CELLA NELLA QUALE VUOI SPOSTARTI\n");
+							passo=sc.nextInt();
+							if(Grotta.percorsoPossibile(partita.getGiocatore().getStanza(), passo)==0) {
+								System.out.println("NOT POSSIBLE - NO TUNNEL");
+							}
+						}
+					} while(Grotta.percorsoPossibile(partita.getGiocatore().getStanza(), passo)==0);
 				partita.passo(passo);
+				}
+				if(partita.getGiocatore().getFrecce()==0) {
+					System.out.println("OOPS! YOU HAVE USED ALL YOUR ARROWS!");
+				    partita.setFinita(1);
+				    return;
+				}				
 			}
 			System.out.println("VUOI FARE UN'ALTRA PARTITA?\n1 - SI'\n0 - NO");
 			ripeti=sc.nextInt();
