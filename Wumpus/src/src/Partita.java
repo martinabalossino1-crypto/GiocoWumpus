@@ -60,6 +60,18 @@ public class Partita {
 		return this.finita;
 	}
 	
+	public void setFinita(int finita) {
+		this.finita=finita;
+	}
+	
+	public Grotta getGrotta() {
+		return this.grotta;
+	}
+	
+	public Giocatore getGiocatore() {
+		return this.giocatore;
+	}
+	
 	public void scoccaFreccia(int numStanze) {
 		@SuppressWarnings("resource")
 		Scanner scn = new Scanner(System.in);
@@ -74,6 +86,7 @@ public class Partita {
 				stanzaAttuale=stanzaTemp;
 			}
 			else {
+				System.out.println("ARROWS AREN’T THAT CROOKED - TRY ANOTHER ROOM");
 				Random rn = new Random();
 				stanzaPrecedente=stanzaAttuale;
 				stanzaAttuale=this.grotta.getTunnel()[stanzaAttuale*3+rn.nextInt(0,3)];
@@ -87,20 +100,23 @@ public class Partita {
 					random = rn.nextInt(0,3);
 					this.wumpus=this.wumpus*3+random;
 					if (this.wumpus==this.giocatore.getStanza()) {
-						System.out.println("HAI PERSO");
+						System.out.println("TSK TSK TSK- WUMPUS GOT YOU!");
 						this.finita=1;
 						return;
 					}
 				}
-			}
+			}			
 		}
 		if(stanzaAttuale==this.wumpus) {
-			System.out.println("HAI VINTO");
+			System.out.println("AHA! YOU GOT THE WUMPUS! HEE HEE HEE - THE WUMPUS’LL GETCHA NEXT TIME!!");
 			this.finita=1;
 		}
 		else if(stanzaAttuale==this.giocatore.getStanza()) {
-			System.out.println("HAI PERSO");
+			System.out.println("OUCH! ARROW GOT YOU!");
 			this.finita=1;
+		}
+		else {
+			System.out.println("MISSED");
 		}
 		this.giocatore.eliminaFreccia();
 	}
@@ -120,8 +136,8 @@ public class Partita {
 		i=0;
 		while(i<2) {
 			stanzaRandom=rn.nextInt(0,20);
-			if(this.grotta.getStanza(stanzaRandom).getArrayStato().isEmpty()) {
-				this.grotta.getStanza(stanzaRandom).setStato(Stanza.Stato.PIPISTRELLI);
+			int inserito = this.grotta.getStanza(stanzaRandom).setStatoIfEmpty(Stanza.Stato.PIPISTRELLI);
+			if (inserito==1) {
 				this.pipistrelli[i]=stanzaRandom;
 				i++;
 			}
@@ -129,8 +145,8 @@ public class Partita {
 		i=0;
 		while(i==0) {
 			stanzaRandom=rn.nextInt(0,20);
-			if(this.grotta.getStanza(stanzaRandom).getArrayStato().isEmpty()) {
-				this.grotta.getStanza(stanzaRandom).setStato(Stanza.Stato.TUMAEROS);
+			int inserito = this.grotta.getStanza(stanzaRandom).setStatoIfEmpty(Stanza.Stato.TUMAEROS);
+			if (inserito==1) {
 				this.tumaeros=stanzaRandom;
 				i=1;
 			}
@@ -138,12 +154,34 @@ public class Partita {
 		i=0;
 		while(i==0) {
 			stanzaRandom=rn.nextInt(0,20);
-			if(this.grotta.getStanza(stanzaRandom).cercaStato(Stanza.Stato.WUMPUS)==0) {
-				this.grotta.getStanza(stanzaRandom).setStato(Stanza.Stato.WUMPUS);
+			int inserito = this.grotta.getStanza(stanzaRandom).setStatoIfEmpty(Stanza.Stato.WUMPUS);
+			if (inserito==1) {
 				this.wumpus=stanzaRandom;
 				i=1;			
 			}
 		}
+	}
+	
+	public int spostaAdiacente(Stanza.Stato stato, int personaggio) {
+		Random rn = new Random(this.seme);
+		int valRandom=rn.nextInt(0,this.probabilità);
+		valRandom=rn.nextInt(0,3);
+		this.grotta.getStanza(personaggio).removeStato(stato);
+		personaggio=this.grotta.getTunnel()[personaggio*3+valRandom];
+		this.grotta.getStanza(personaggio).setStato(stato);
+		if (this.giocatore.getStanza()==personaggio) {
+			return 1;
+		}
+		return 0;
+	}
+	
+	public int spostaRandom() {
+		Random rn = new Random(seme);
+		int stanzaRandom=rn.nextInt(0,20);
+		this.grotta.getStanza(this.giocatore.getStanza()).removeStato(Stanza.Stato.GIOCATORE);
+		this.grotta.getStanza(stanzaRandom).setStato(Stanza.Stato.GIOCATORE);
+		this.giocatore.setStanza(stanzaRandom);
+		return stanzaRandom;
 	}
 	
 	public void passo(int passo) {
@@ -151,16 +189,12 @@ public class Partita {
 		this.grotta.getStanza(passo).setStato(Stanza.Stato.GIOCATORE);
 		this.giocatore.setStanza(passo);
 		if(this.grotta.getStanza(passo).cercaStato(Stanza.Stato.PIPISTRELLI)==1) {
-			Random rn = new Random(this.seme);
-			int stanzaRandom=rn.nextInt(0,20);
-			this.grotta.getStanza(this.giocatore.getStanza()).removeStato(Stanza.Stato.GIOCATORE);
-			this.grotta.getStanza(stanzaRandom).setStato(Stanza.Stato.GIOCATORE);
-			this.giocatore.setStanza(stanzaRandom);
-			System.out.println("PIPISTRELLI! TI HANNO SPOSTATO IN UN'ALTRA CELLA "+stanzaRandom);
+			int stanzaRandom = this.spostaRandom();
+			System.out.println("ZAP – SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU! "+stanzaRandom);
 		}
 		if(this.grotta.getStanza(this.giocatore.getStanza()).cercaStato(Stanza.Stato.TUMAEROS)==1) {
 			this.giocatore.eliminaFreccia();
-			System.out.println("TUMAEROS! TI RIMANGONO "+this.giocatore.getFrecce()+" FRECCE");
+			System.out.println("CHOMP, CHOMP - THAT WAS A TASTY ARROW");
 		}
 		if(this.giocatore.getFrecce()==0) {
 			System.out.println("GAME OVER - HAI FINITO LE FRECCE");
@@ -168,38 +202,37 @@ public class Partita {
 			return;
 		}
 		if(this.grotta.getStanza(this.giocatore.getStanza()).cercaStato(Stanza.Stato.WUMPUS)==1) {
-			System.out.println("GAME OVER - L'WUMPUS TI HA TROVATO");
+			System.out.println("TSK TSK TSK- WUMPUS GOT YOU!");
 			this.finita=1;
 			return;
 		}
 		if(this.grotta.getStanza(this.giocatore.getStanza()).cercaStato(Stanza.Stato.POZZO)==1) {
-			System.out.println("GAME OVER - SEI CADUTO IN UN POZZO");
+			System.out.println("YYYIIIIEEEE... FELL IN PIT");
 			this.finita=1;
 			return;
 		}
 	}
 	
+	
+	
 	public void cambioCasuale() {
 		Random rn = new Random(this.seme);
 		int valRandom=rn.nextInt(0,this.probabilità);
 		if(valRandom==0) {
-			valRandom=rn.nextInt(0,3);
-			this.grotta.getStanza(this.wumpus).removeStato(Stanza.Stato.WUMPUS);
-			this.wumpus=this.grotta.getTunnel()[this.wumpus*3+valRandom];
-			this.grotta.getStanza(this.wumpus).setStato(Stanza.Stato.WUMPUS);
-			if (this.giocatore.getStanza()==this.wumpus) {
-				System.out.println("GAME OVER");
+			int stessaStanzaGiocatore = this.spostaAdiacente(Stanza.Stato.WUMPUS, this.wumpus);
+			System.out.println("DON’T BLINK NOW, BUT I HEAR THE WUMPUS SLEEP-WALKING!!!!");
+			if (stessaStanzaGiocatore==1) {
+				System.out.println("TSK TSK TSK- WUMPUS GOT YOU!");
 				this.finita=1;
 				return;
 			}
 		}
 		valRandom=rn.nextInt(0,this.probabilità);
 		if(valRandom==0) {
-			valRandom=rn.nextInt(0,3);
-			this.grotta.getStanza(this.tumaeros).removeStato(Stanza.Stato.TUMAEROS);
-			this.tumaeros=this.grotta.getTunnel()[this.tumaeros*3+valRandom];
-			this.grotta.getStanza(this.tumaeros).setStato(Stanza.Stato.TUMAEROS);
-			if (this.giocatore.getStanza()==this.tumaeros) {
+			int stessaStanzaGiocatore = this.spostaAdiacente(Stanza.Stato.TUMAEROS, this.tumaeros);
+			System.out.println("BUZZ, BUZZ - THE TUMAEROS ARE SWARMING");
+			if (stessaStanzaGiocatore==1) {
+				System.out.println("CHOMP, CHOMP - THAT WAS A TASTY ARROW");
 				this.giocatore.eliminaFreccia();
 				return;
 			}
@@ -207,31 +240,40 @@ public class Partita {
 		for(int i=0;i<2;i++) {
 			valRandom=rn.nextInt(0,this.probabilità);
 			if(valRandom==0) {
-				valRandom=rn.nextInt(0,3);
-				this.grotta.getStanza(this.pipistrelli[i]).removeStato(Stanza.Stato.PIPISTRELLI);
-				this.pipistrelli[i]=this.grotta.getTunnel()[this.pipistrelli[i]*3+valRandom];
-				this.grotta.getStanza(this.pipistrelli[i]).setStato(Stanza.Stato.PIPISTRELLI);
-				if (this.giocatore.getStanza()==this.pipistrelli[i]) {
-					System.out.println("GAME OVER");
-					this.finita=1;
-					return;
+				int stessaStanzaGiocatore = this.spostaAdiacente(Stanza.Stato.PIPISTRELLI, this.pipistrelli[i]);
+				System.out.println("WHAT A FLAP YOU’RE IN... IT’S BAT MIGRATION TIME!!");
+				if (stessaStanzaGiocatore==1) {
+					int stanzaRandom=this.spostaRandom();
+					System.out.println("ZAP – SUPER BAT SNATCH! ELSEWHEREVILLE FOR YOU! "+stanzaRandom);
 				}
 			}		
 		}
 		for(int i=0;i<2;i++) {
 			valRandom=rn.nextInt(0,20);
-			if(valRandom==1) {
-				valRandom=rn.nextInt(0,3);
-				this.grotta.getStanza(this.pozzi[i]).removeStato(Stanza.Stato.POZZO);
-				this.pozzi[i]=this.grotta.getTunnel()[this.pozzi[i]*3+valRandom];
-				this.grotta.getStanza(this.pozzi[i]).setStato(Stanza.Stato.POZZO);
-				if (this.giocatore.getStanza()==this.pozzi[i]) {
-					int stanzaRandom=rn.nextInt(0,20);
-					this.grotta.getStanza(this.giocatore.getStanza()).removeStato(Stanza.Stato.GIOCATORE);
-					this.grotta.getStanza(stanzaRandom).setStato(Stanza.Stato.GIOCATORE);
-					this.giocatore.setStanza(stanzaRandom);
+			if(valRandom==0) {
+				int stessaStanzaGiocatore = this.spostaAdiacente(Stanza.Stato.POZZO, this.pozzi[i]);
+				System.out.println("RUMBLE, RUMBLE - YOU’RE STANDING ON SHAKY GROUND... NEW PITS HAVE BEEN FORMED BY THE EARTHQUAKE!!");
+				if (stessaStanzaGiocatore==1) {
+					System.out.println("YYYIIIIEEEE... FELL IN PIT");
+					this.finita=1;
+					return;
 				}
 			}		
+		}
+	}
+	
+	public void ostacoliVicini() {
+		if(this.getGrotta().percorsoPossibile(this.giocatore.getStanza(), this.wumpus)==1) {
+			System.out.println("I SMELL A WUMPUS!");
+		}
+		if(this.getGrotta().percorsoPossibile(this.giocatore.getStanza(), this.tumaeros)==1) {
+			return;
+		}
+		if(this.getGrotta().percorsoPossibile(this.giocatore.getStanza(), this.pipistrelli[i])==1) {
+			
+		}
+		if(this.getGrotta().percorsoPossibile(this.giocatore.getStanza(), this.pozzi[i])==1) {
+	
 		}
 	}
 	
