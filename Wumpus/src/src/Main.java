@@ -2,22 +2,23 @@ package src;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Scanner;
 
 public class Main {
 
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws WumpusGameException {
 		// TODO Auto-generated method stub
 		
-		int seme;
+		int seme=0;
+		boolean semeDefault = false;
 		String livello;
 		String grotta;
 		String scelta;
 		
 		while(true) {
-			
+				
+			@SuppressWarnings("resource")
 			Scanner sc=new Scanner(System.in);
 			
 			System.out.println("-- HUNT THE WUMPUS --\r\n"
@@ -39,7 +40,7 @@ public class Main {
 			        reader =  new BufferedReader(new FileReader(f));
 				}
 				catch(Throwable thr) {
-					System.out.println(new WumpusGameException("IMPOSSIBILE TROVARE IL FILE SPECIFICATO\n").toString());
+					System.out.println(new WumpusGameException("IMPOSSIBLE TO FIND THE SPECIFIED FILE\n").toString());
 				}
 				
 				try {
@@ -50,13 +51,21 @@ public class Main {
 					reader.close();
 				}
 				catch(Throwable thr) {
-					System.out.println(new WumpusGameException("NON E' POSSIBILE LEGGERE IL FILE IN QUANTO NULLO\n").toString());
+					System.out.println(new WumpusGameException("IT'S NOT POSSIBLE TO READ THE FILE BECAUSE IT'S EMPTY\n").toString());
 				}
 			}
 			
 			
 			System.out.println("INSERIRT SEED:");
-			seme=sc.nextInt();
+			try {
+				seme=sc.nextInt();
+			}
+			catch (Throwable thr) {
+				sc.nextLine();
+				System.out.println(new WumpusGameException("THE VALUE ENTERED DOESN'T MATCH A INTEGER\n").toString());
+				System.out.println("THE SEED VALUE WILL BE RANDOM\n");
+				semeDefault = true;
+			}
 			
 			do {
 				System.out.println("DIFFICULTY: (E)ASY, (N)ORMAL, (H)ARD?");
@@ -67,9 +76,18 @@ public class Main {
 			} while (livello.compareTo("E")!=0 && livello.compareTo("e")!=0 && livello.compareTo("N")!=0 && livello.compareTo("n")!=0 && livello.compareTo("H")!=0 && livello.compareTo("h")!=0);
 			
 			Partita partita;
-			if(livello.compareTo("E")==0 || livello.compareTo("e")==0) partita = new Partita(seme,20);
-			else if(livello.compareTo("N")==0 || livello.compareTo("n")==0) partita = new Partita(seme,12);
-			else partita = new Partita(seme,6);
+			if(livello.compareTo("E")==0 || livello.compareTo("e")==0) {
+				if (semeDefault == true) partita = new Partita(20);
+				else partita = new Partita(seme,20);
+			}
+			else if(livello.compareTo("N")==0 || livello.compareTo("n")==0) {
+				if (semeDefault == true) partita = new Partita(12);
+				else partita = new Partita(seme,12);
+			}
+			else {
+				if (semeDefault == true) partita = new Partita(6);
+				else partita = new Partita(seme,6);
+			}
 			
 			do {
 				System.out.println("CAVE: (D)ODECAHEDRON, (M)OBIUS STRIP?");
@@ -120,16 +138,22 @@ public class Main {
 						}
 						catch(Throwable thr) {
 							sc.nextLine();
-							System.out.println(new WumpusGameException("IL VALORE INSERITO NON CORRISPONDE A UN INTERO\n").toString());
+							System.out.println(new WumpusGameException("THE VALUE ENTERED DOESN'T MATCH A INTEGER\n").toString());
 						}
 					} while(i==0);
 				}
 				else if (scelta.compareTo("S")==0 || scelta.compareTo("s")==0){
 					do {
 						System.out.println("YOU HAVE "+partita.getGiocatore().getFrecce()+" ARROWS\n\nNO. OF ROOMS (1-5)");
-						distanza=sc.nextInt();
-						System.out.println("");
-						if(distanza>5) System.out.println("NOT VALID");
+						try {
+							distanza=sc.nextInt();
+							System.out.println("");
+							if(distanza>5||distanza<1) System.out.println("NOT VALID. VALUE MUST BE BETWEEN 1 AND 5");
+						}
+						catch(Throwable thr) {
+							sc.nextLine();
+							System.out.println(new WumpusGameException("THE VALUE ENTERED DOESN'T MATCH A INTEGER\n").toString());
+						}
 					}
 					while(distanza<1||distanza>5);
 					partita.scoccaFreccia(distanza);
@@ -161,14 +185,11 @@ public class Main {
 			}
 			while (nuovaPartita.compareTo("N")!=0 && nuovaPartita.compareTo("n")!=0 
 					&& nuovaPartita.compareTo("Y")!=0 && nuovaPartita.compareTo("y")!=0);
-			if(nuovaPartita.compareTo("N")==0 || nuovaPartita.compareTo("n")==0) break;
-			
+			if(nuovaPartita.compareTo("N")==0 || nuovaPartita.compareTo("n")==0) {
+				sc.close();
+				break;
+			}
 		}
-	}
-
-	private static Object WumpusGameException(Throwable ex) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }
