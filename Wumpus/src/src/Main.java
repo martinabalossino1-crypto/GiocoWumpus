@@ -2,13 +2,13 @@ package src;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws FileNotFoundException {
 		// TODO Auto-generated method stub
 		
 		int seme;
@@ -16,9 +16,9 @@ public class Main {
 		String grotta;
 		String scelta;
 		
-		Scanner sc=new Scanner(System.in);
-		
 		while(true) {
+			
+			Scanner sc=new Scanner(System.in);
 			
 			System.out.println("-- HUNT THE WUMPUS --\r\n"
 					+ "BRAVE DUDE, HUNT THE WUMPUS!\n");
@@ -33,13 +33,25 @@ public class Main {
 			} while (istruzioni.compareTo("Y")!=0 && istruzioni.compareTo("y")!=0 && istruzioni.compareTo("N")!=0 && istruzioni.compareTo("n")!=0);
 				
 			if(istruzioni.compareTo("Y")==0 || istruzioni.compareTo("y")==0) {
-				File f = new File("Istruzioni.txt");
-		        final BufferedReader reader = new BufferedReader(new FileReader(f));
-		        String currentLine;
-		        while ((currentLine = reader.readLine())!=null) {
-			        System.out.println(currentLine);
-		        }
-		        reader.close();
+				BufferedReader reader = null;
+				try {
+					File f = new File("istruzioni.txt");
+			        reader =  new BufferedReader(new FileReader(f));
+				}
+				catch(Throwable thr) {
+					System.out.println(new WumpusGameException("IMPOSSIBILE TROVARE IL FILE SPECIFICATO\n").toString());
+				}
+				
+				try {
+					String currentLine;
+					while ((currentLine = reader.readLine())!=null) {
+						System.out.println(currentLine);
+					}
+					reader.close();
+				}
+				catch(Throwable thr) {
+					System.out.println(new WumpusGameException("NON E' POSSIBILE LEGGERE IL FILE IN QUANTO NULLO\n").toString());
+				}
 			}
 			
 			
@@ -75,6 +87,7 @@ public class Main {
 			
 			while(partita.getFinita()==0) {
 				
+				sc.nextLine();
 				//System.out.println(partita.toString());
 				System.out.println("YOU ARE IN ROOM "+partita.getGiocatore().getStanza());
 				partita.ostacoliVicini();
@@ -97,14 +110,19 @@ public class Main {
 					int i = 0;
 					do {
 						System.out.println("WHERE TO?");
-						passo=sc.nextInt();
-						System.out.println("");
-						i = partita.passo(passo);
-						if(i==0) {
+						try {
+							passo=sc.nextInt();
+							System.out.println("");
+							i = partita.passo(passo);
+							if(i==0) {
 								System.out.println("NOT POSSIBLE - NO TUNNEL\n");
+							}
+						}
+						catch(Throwable thr) {
+							sc.nextLine();
+							System.out.println(new WumpusGameException("IL VALORE INSERITO NON CORRISPONDE A UN INTERO\n").toString());
 						}
 					} while(i==0);
-				partita.passo(passo);
 				}
 				else if (scelta.compareTo("S")==0 || scelta.compareTo("s")==0){
 					do {
@@ -130,7 +148,7 @@ public class Main {
 					break;
 				}
 			}
-
+			
 			String nuovaPartita;
 			do {
 				System.out.println("DO YOU WANT TO PLAY AGAIN?\n(Y)ES\n(N)O\n");
@@ -146,7 +164,11 @@ public class Main {
 			if(nuovaPartita.compareTo("N")==0 || nuovaPartita.compareTo("n")==0) break;
 			
 		}
-		sc.close();
+	}
+
+	private static Object WumpusGameException(Throwable ex) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
