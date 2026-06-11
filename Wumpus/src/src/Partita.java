@@ -180,8 +180,18 @@ public class Partita {
 		int stanzaAttuale=this.giocatore.getStanza();
 		int i=1;
 		while(i<=numStanze){
-			System.out.println("ROOM #"+i+"?\n");
-			stanzaTemp=sc.nextInt();
+			do{
+				System.out.println("ROOM #"+i+"?\n");
+				try {
+					stanzaTemp=sc.nextInt();
+					break;
+				}
+				catch (Throwable thr){
+					sc.nextLine();
+					System.out.println(new WumpusGameException("THE VALUE ENTERED DOESN'T MATCH A INTEGER\n").toString());
+				}
+			}while(true);
+			
 			if(Grotta.percorsoPossibile(stanzaAttuale,stanzaTemp)==1 && stanzaPrecedente!=stanzaTemp) {
 				stanzaPrecedente=stanzaAttuale;
 				stanzaAttuale=stanzaTemp;
@@ -217,16 +227,16 @@ public class Partita {
 					}
 				}
 			}			
-		}
+		
 		if(stanzaAttuale==this.wumpus) {
 			System.out.println("AHA! YOU GOT THE WUMPUS! HEE HEE HEE - THE WUMPUS’LL GETCHA NEXT TIME!!\n");
 			this.finita=1;
 		}
-		else {
+		else if (stanzaPrecedente==stanzaTemp){
 			System.out.println("MISSED\n");
 		}
 		this.giocatore.eliminaFreccia();
-		sc.close();
+		}
 	}
 	
 	public int spostaAdiacente(Stanza.Stato stato, int personaggio) {
