@@ -232,26 +232,39 @@ public class Partita {
 			System.out.println("AHA! YOU GOT THE WUMPUS! HEE HEE HEE - THE WUMPUS’LL GETCHA NEXT TIME!!\n");
 			this.finita=1;
 		}
-		else if (stanzaPrecedente==stanzaTemp){
+		else{
 			System.out.println("MISSED\n");
 		}
 		this.giocatore.eliminaFreccia();
 		}
 	}
 	
-	public int spostaAdiacente(Stanza.Stato stato, int personaggio) {
+	/**
+	 * Metodo Permette di spostare gli ostacoli nelle stanze adiacenti.
+	 * Inoltre ci indica se l'ostacolo è stato spostato nella stanza del giocatore
+	 * @param  statoPersonaggio Il valore enumerativo dello stato dell'ostacolo
+	 * @param stanzaPersonaggio L'id della stanza in cui si trova l'ostacolo
+	 * 
+	 * @return Ritorna 1 se l'ostacolo è stato spostato nella stanza del giocatore altrimenti 0
+	 */	
+	public int spostaAdiacente(Stanza.Stato statoPersonaggio, int stanzaPersonaggio) {
 		Random rn = new Random(this.seme);
 		int valRandom=rn.nextInt(0,this.probabilità);
 		valRandom=rn.nextInt(0,3);
-		this.grotta.getStanza(personaggio).removeStato(stato);
-		personaggio=this.grotta.getTunnel()[personaggio*3+valRandom];
-		this.grotta.getStanza(personaggio).setStato(stato);
-		if (this.giocatore.getStanza()==personaggio) {
+		this.grotta.getStanza(stanzaPersonaggio).removeStato(statoPersonaggio);
+		stanzaPersonaggio=this.grotta.getTunnel()[stanzaPersonaggio*3+valRandom];
+		this.grotta.getStanza(stanzaPersonaggio).setStato(statoPersonaggio);
+		if (this.giocatore.getStanza()==stanzaPersonaggio) {
 			return 1;
 		}
 		return 0;
 	}
 	
+	/**
+	 * Metodo Permette di spostare il giocatore in una stanza random una volta che viene catturato dai pipistrelli
+	 * 
+	 * @return Ritorna id della stanza in cui è stato spostato il giocatore
+	 */	
 	public int spostaRandom() {
 		Random rn = new Random(seme);
 		int stanzaRandom=rn.nextInt(0,20);
@@ -261,6 +274,10 @@ public class Partita {
 		return stanzaRandom;
 	}	
 	
+	/**
+	 * Metodo Permette spostare gli ostacoli in stanze scelte in maniera casuale alla fine di ogni turno
+	 *  
+	 */	
 	public void cambioCasuale() {
 		Random rn = new Random(this.seme);
 		int valRandom=rn.nextInt(0,this.probabilità);
@@ -308,6 +325,10 @@ public class Partita {
 		}
 	}
 	
+	/**
+	 * Metodo Invia un messaggio di allerta ogni volta che il giocatore si sposta di stanza e vi sono degli ostacoli nelle stanze adiacenti
+	 * 
+	 */	
 	public void ostacoliVicini() {
 		if(Grotta.percorsoPossibile(this.giocatore.getStanza(), this.wumpus)==1) {
 			System.out.println("I SMELL A WUMPUS!");
@@ -326,6 +347,10 @@ public class Partita {
 		return;
 	}
 	
+	/**
+	 * Metodo Stampa un messaggio dove indica l'id delle stanze in cui si trovano il giocatore e gli  ostacoli
+	 * @return 
+	 */	
 	public String toString() {
 		String stringa="";
 		stringa=stringa+"TU TI TROVI NELLA STANZA "+this.giocatore.getStanza()+"\n";
@@ -336,18 +361,34 @@ public class Partita {
 		return stringa;
 	}
 	
+	/**
+	 * Metodo Setta il valore del campo che indica se la partita è finita o meno
+	 * @param finita Rappresenta il valore da inserire nel campo finita
+	 */	
 	public void setFinita(int finita) {
 		this.finita=finita;
 	}
 	
+	/**
+	 * Metodo Ci ritorna l'oggetto grotta
+	 * @return Ritorna grotta
+	 */	
 	public Grotta getGrotta() {
 		return this.grotta;
 	}
 	
+	/**
+	 * Metodo Ci ritorna oggetto giocatore
+	 * @return Ritorna giocatore
+	 */	
 	public Giocatore getGiocatore() {
 		return this.giocatore;
 	}
 	
+	/**
+	 * Metodo Ci ritorna il valore del campo finita
+	 * @return Ci ritorna 1 se è finita altrimenti 0
+	 */	
 	public int getFinita() {
 		return this.finita;
 	}
